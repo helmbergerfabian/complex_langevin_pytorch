@@ -1,0 +1,18 @@
+[project]
+name = "complex_langevin"
+version = "0.1.0"
+description = "A PyTorch based Python package for complex Langevin dynamics."
+authors = [
+    { name = "Fabian Helmberger", email = "helmbergerfabian@gmail.com" }
+]
+license = { file = "LICENSE" }
+readme = "README.md"
+keywords = ["langevin", "dynamics", "simulation", "PyTorch]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]

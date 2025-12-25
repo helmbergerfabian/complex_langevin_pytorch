@@ -47,7 +47,7 @@ class SimEvol(SimLogger):
         return dt_ada   
 
 
-    def kill_condition(self, drift):
+    def kill_condition(self, dt_ada):
         """
         Determine which trajectories should
         be killed based on the drift and adaptive time step.
@@ -60,6 +60,5 @@ class SimEvol(SimLogger):
             torch.Tensor: Boolean mask indicating which trajectories to kill.
         """
         # kill trajectories with small drift mag
-        norm = torch.abs(drift)
-        _kill = norm < 1e-3
+        _kill = dt_ada < 1e-3
         return _kill

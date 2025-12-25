@@ -1,5 +1,5 @@
 # complex_langevin/utils/logging.py
-class Logger:
+class SimLogger:
     def log(self, message):
         self._sender = None
         pass

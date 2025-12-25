@@ -1,12 +1,12 @@
 # complex_langevin/simulation/state_torch.py
 
 from complex_langevin.config import VERBOSE
-from complex_langevin.utils.logging import Logger
+from complex_langevin.utils.logging import SimLogger
 
 from complex_langevin.config import CL_REAL, CL_COMPLEX
 import torch
 
-class SimState(Logger):
+class SimState(SimLogger):
     def __init__(
         self,
         n_seeds: int | None = None,
@@ -16,7 +16,7 @@ class SimState(Logger):
         # initialize logger
         self._init_logger(VERBOSE, sender = "SimState")
         self.log("initialized")
-
+        
         # choose device, which is CPU or GPU
         self.device = torch.device(
             device or ("cuda" if torch.cuda.is_available() else "cpu")
@@ -57,8 +57,16 @@ class SimState(Logger):
             device=self.device,
         )
 
+        # langevin time per seed
         self.langevin_time = torch.zeros(
             self.n_seeds,
             dtype=CL_REAL,
+            device=self.device,
+        )
+        
+        # alive mask per seed
+        self.alive = torch.ones(
+            self.n_seeds,
+            dtype=torch.bool,
             device=self.device,
         )

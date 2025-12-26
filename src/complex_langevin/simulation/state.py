@@ -65,8 +65,39 @@ class SimState(SimLogger):
         )
         
         # alive mask per seed
-        self.alive = torch.ones(
+        self._alive = torch.ones(
             self.n_seeds,
             dtype=torch.bool,
             device=self.device,
         )
+
+    @property
+    def alive(self) -> torch.Tensor:
+        """Boolean mask of alive trajectories (read-only view)."""
+        return self._alive
+
+    
+    @alive.setter
+    def alive(self, new_alive: torch.Tensor) -> None:
+        """
+        Replace alive mask.
+        Evolution logic decides what dies; state only applies it.
+        """
+        if not isinstance(new_alive, torch.Tensor):
+            raise TypeError("alive must be a torch.Tensor")
+
+        if new_alive.dtype != torch.bool:
+            raise TypeError("alive mask must be boolean")
+
+        if new_alive.shape != self._alive.shape:
+            raise ValueError("alive mask has wrong shape")
+
+        if new_alive.device != self._alive.device:
+            raise ValueError("alive mask on wrong device")
+
+        self._alive = new_alive
+
+
+    @property
+    def alive_count(self):
+        return self.alive.sum()

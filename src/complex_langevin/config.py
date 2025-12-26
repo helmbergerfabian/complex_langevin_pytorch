@@ -17,3 +17,6 @@ else:
 
 
 VERBOSE = os.getenv("CL_VERBOSE", "1") == "1"
+
+DS_MAX_LOWER = 1e-3
+mean_dS_max = 5

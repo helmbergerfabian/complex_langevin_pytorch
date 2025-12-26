@@ -21,50 +21,46 @@ class SimRunner(SimLogger):
 
 
     def step(self):
-        mask = self.state.alive
-        if not mask.any():
+        # mask = self.state.alive
+        if not self.state.alive.any():
             return
 
         # 1. drift
-        self.state.drift[mask] = self.model.drift(
-            self.state.phi[mask]
+        self.state.drift[self.state.alive] = self.model.drift(
+            self.state.phi[self.state.alive]
         )
 
         # 2. adaptive dt
-        self.state.dt_ada[mask] = self.evolution.compute_dt_ada(
-            self.state.drift[mask]
-        )
+        self.evolution.update_dt_ada()
+        # self.state.dt_ada[self.state.alive] = self.evolution.compute_dt_ada(
+        #     self.state.drift[self.state.alive]
+        # )
 
         # 3. kill trajectories
-        kill = self.evolution.kill_condition(
-            self.state.drift[mask],
-            self.state.dt_ada[mask],
-        )
+        self.evolution.kill_trajs()
         
-        mask = self.state.alive
-        new_alive = self.state.alive.clone()
-        new_alive[mask] &= ~kill
-        self.state.alive = new_alive
-
-        # # refresh mask after killing
-        # mask = self.state.alive
-        # if not mask.any():
-        #     return
-
         # 4. noise
-        self.state.noise[mask] = torch.randn(
-            mask.sum(),
-            device=self.state.device,
-            dtype=self.state.noise.dtype,
-        )
-
+        self.evolution.update_noise()
+        # self.state.noise[self.state.alive] = torch.randn(
+        #     self.state.alive_count,
+        #     device=self.state.device,
+        #     dtype=self.state.noise.dtype,
+        # )
+        
         # 5. evolve
-        dt = self.state.dt_base * self.state.dt_ada[mask]
+        self.evolution.update_field()
+        # dt = self.state.dt_base * self.state.dt_ada[self.state.alive]
 
-        self.state.phi[mask] += (
-            dt * self.state.drift[mask]
-            + torch.sqrt(dt) * self.state.noise[mask]
-        )
+        # self.state.phi[self.state.alive] += (
+        #     dt * self.state.drift[self.state.alive]
+        #     + torch.sqrt(2*dt) * self.state.noise[self.state.alive]
+        # )
+        # self.state.langevin_time[self.state.alive] += dt
 
-        self.state.langevin_time[mask] += dt
-        # self.state.global_step += 1
+    def finish(self):
+        self.log("simulation parameters: " + str({k: v for k, v in self.model.__dict__.items() if k not in {'log', "_sender"}}))
+        self.log("Final alive count: {}".format(self.state.alive.sum().item()))
+        self.log("Final average of langevin time: {:.4e}".format(self.state.langevin_time[self.state.alive].mean().item()))
+        self.log("Final std of langevin time: {:.4e}".format(self.state.langevin_time[self.state.alive].std().item()))
+        self.log("Final average of dt_ada: {:.4e}".format(self.state.dt_ada[self.state.alive].mean().item()))
+        self.log("Final std of dt_ada: {:.4e}".format(self.state.dt_ada[self.state.alive].std().item()))

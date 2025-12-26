@@ -7,12 +7,9 @@ authors = [
 ]
 license = { file = "LICENSE" }
 readme = "README.md"
-keywords = ["langevin", "dynamics", "simulation", "PyTorch]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent",
-]
+requires-python = ">=3.9"
 
 [tool.pytest.ini_options]
 pythonpath = ["src"]
+testpaths = ["tests"]
+

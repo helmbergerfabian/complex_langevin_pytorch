@@ -2,7 +2,7 @@
 import torch
 import os
 
-CL_PRECISION = os.getenv("CL_PRECISION", "single").lower()
+CL_PRECISION = os.getenv("CL_PRECISION", "double").lower()
 
 if CL_PRECISION == "double":
     CL_REAL = torch.float64

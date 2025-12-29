@@ -1,11 +1,13 @@
 # complex_langevin/utils/logging.py
+
+from time import time
 class SimLogger:
     def log(self, message):
         self._sender = None
         pass
 
     def _log_enabled(self, message):
-        print(f"[{self._sender}] {message}")
+        print(f"{time()}: [{self._sender}] {message}")
 
     def _log_disabled(self, message):
         pass

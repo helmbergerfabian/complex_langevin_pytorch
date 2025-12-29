@@ -21,3 +21,9 @@ class SimModel(SimLogger):
         y = np.exp(-self.action(x))
         integral = np.trapezoid(y=y, x=x)
         return integral
+    
+    def moment(self, order):
+        x = np.linspace(-4, 4, 1000)
+        y = np.exp(-self.action(x)) * x**order
+        integral = np.trapezoid(y=y, x=x) / self.partition_function()
+        return integral

@@ -31,7 +31,8 @@ class SimRunner(SimLogger):
         )
 
         # 2. adaptive dt
-        self.evolution.update_dt_ada()
+        if self.state.adaptive_step:
+            self.evolution.update_dt_ada()
         # self.state.dt_ada[self.state.alive] = self.evolution.compute_dt_ada(
         #     self.state.drift[self.state.alive]
         # )

@@ -12,7 +12,9 @@ class SimState(SimLogger):
         n_seeds: int | None = None,
         dt_base: float | None = None,
         device: str | torch.device | None = None,
-    ):
+        adaptive_step: bool = True
+        ):
+
         # initialize logger
         self._init_logger(VERBOSE, sender = "SimState")
         self.log("initialized")
@@ -25,6 +27,9 @@ class SimState(SimLogger):
 
         # number of seeds
         self.n_seeds = n_seeds or int(1e4)
+
+        # adaptive step size bool 
+        self.adaptive_step = adaptive_step
 
         # base time step per seed, later mulitplied by adaptive factor
         self.dt_base = torch.tensor(

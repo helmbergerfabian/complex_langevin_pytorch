@@ -145,6 +145,7 @@ class SimObs(SimLogger):
 
 
 
+
 class RollingComplexAccumulator(SimLogger):
     def __init__(self, n_seeds, device, observable: SimObs, target_blocks: int = 20):
         self._init_logger(VERBOSE, "RollingAcc")
@@ -215,58 +216,40 @@ class RollingComplexAccumulator(SimLogger):
         return self.block_means[:self.observable.target_blocks], \
             self.reduction_times[:self.observable.target_blocks]
 
+import torch
+from complex_langevin.config import CL_COMPLEX
 
 
-# class RollingComplexAccumulator:
-#     def __init__(self, n_seeds, device):
-#         self.sum_x  = torch.zeros(n_seeds, device=device)
-#         self.sum_y  = torch.zeros(n_seeds, device=device)
-#         self.sum_xx = torch.zeros(n_seeds, device=device)
-#         self.sum_yy = torch.zeros(n_seeds, device=device)
-#         self.sum_xy = torch.zeros(n_seeds, device=device)
-#         self.count  = torch.zeros(n_seeds, dtype=torch.int64, device=device)
+class DSEMoment(SimObs):
+    def __init__(
+        self,
+        *,
+        pullback: float,
+        mass_mod: float,
+        **kwargs,
+    ):
+        """
+        DSE-specific observable.
 
-#     def update(self, z: torch.Tensor, mask: torch.Tensor):
-#         """
-#         Add new measurements z[mask] to the rolling block.
-#         """
-#         x = z.real
-#         y = z.imag
+        All DAQ, blocking, async logic is inherited from SimObs.
+        Only the observable definition is changed.
+        """
+        super().__init__(**kwargs)
 
-#         self.sum_x[mask]  += x[mask]
-#         self.sum_y[mask]  += y[mask]
-#         self.sum_xx[mask] += x[mask] * x[mask]
-#         self.sum_yy[mask] += y[mask] * y[mask]
-#         self.sum_xy[mask] += x[mask] * y[mask]
-#         self.count[mask]  += 1
+        self.pullback = pullback
+        self.mass_mod = mass_mod
 
-#     def reduce(self, mask):
-#         valid = mask & (self.count > 0)
-#         if not valid.any():
-#             return None
+        self.log(
+            f"DSEMoment initialized "
+            f"(order={self.order}, pullback={pullback}, mass_mod={mass_mod})"
+        )
 
-#         N = self.count[valid].to(torch.float64)
+    # ------------------------------------------------------------------
+    # ONLY THING THAT CHANGES
+    # ------------------------------------------------------------------
+    def measure_observable(self):
+        phi = self.state.phi
 
-#         mean_x = self.sum_x[valid] / N
-#         mean_y = self.sum_y[valid] / N
+        # Effective action with modified mass
 
-#         var_x  = self.sum_xx[valid] / N - mean_x**2
-#         var_y  = self.sum_yy[valid] / N - mean_y**2
-#         cov_xy = self.sum_xy[valid] / N - mean_x * mean_y
-
-#         return {
-#             "mean": mean_x + 1j * mean_y,
-#             "var_x": var_x,
-#             "var_y": var_y,
-#             "cov_xy": cov_xy,
-#             "N": N,
-#         }
-
-    
-#     def reset(self, mask):
-#         self.sum_x[mask]  = 0
-#         self.sum_y[mask]  = 0
-#         self.sum_xx[mask] = 0
-#         self.sum_yy[mask] = 0
-#         self.sum_xy[mask] = 0
-#         self.count[mask]  = 0
+        return self.order  * phi**(self.order-1) - phi**self.order * (self.model.sigma*phi + self.model.lamb*phi**3)

@@ -72,7 +72,6 @@ class SimObs(SimLogger):
         self._cold_rolling[mask] = (
             self.state.langevin_time[mask]
             - self.last_rolling_meas[mask]
-            # >= 10*self.state.dt_base
             >= self.state.dt_base
         )
         return self._cold_rolling
